@@ -6,16 +6,8 @@ import java.util.Map;
 import java.util.UUID;
 
 public class KDC {
-    public static KDC getInstancia() {
-        if (instancia == null){
-            instancia = new KDC();
-        }
-        return instancia;
-    }
 
-    public void adicionarChave(String nome, String chave) {
-        chaves.put(nome, criarChave(chave));
-    }
+    private String algoritmo;
 
     public byte[] iniciarSessao(String origem, byte[] destinoCifrado) {
         String destino = validarEDescriptografarMensagem(origem, destinoCifrado);
@@ -48,22 +40,17 @@ public class KDC {
         return concatenarECifrar(nome, sessoes.get(nomeUsuarioSessaoDecifrado).getChave());
     }
 
-    private static KDC instancia;
-
     private final Map<String, Key> chaves;
     private final Map<String, Sessao> sessoes;
 
-    private KDC() {
+    public KDC(String algoritmo) {
+        this.algoritmo = algoritmo;
         this.chaves = new HashMap<>();
         this.sessoes = new HashMap<>();
     }
 
     private SecretKeySpec criarChave(String chave) {
-        return new SecretKeySpec(chave.getBytes(StandardCharsets.UTF_8), "AES");
-    }
-
-    private byte[] getChaveSessao() {
-        return new byte[0];
+        return new SecretKeySpec(chave.getBytes(StandardCharsets.UTF_8), algoritmo);
     }
 
     private byte[] concatenarECifrar(String nome, String conteudo) {
@@ -82,5 +69,11 @@ public class KDC {
         }
 
         return destinoDecifrado.substring(nome.length());
+    }
+
+    public Usuario criarUsuario(String nome, String chave) {
+        chaves.put(nome, criarChave(chave));
+
+        return new Usuario(this, nome, chave);
     }
 }

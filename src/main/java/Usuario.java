@@ -4,47 +4,32 @@ import java.util.Map;
 import java.util.Random;
 
 public class Usuario {
+
     private final String nome;
     private Cifrador cifrador;
-
+    private KDC kdc;
     private Map<String, Sessao> sessoes;
 
-    public Usuario(String nome, String chave) {
+    public Usuario(KDC kdc, String nome, String chave) {
         this.nome = nome;
         this.cifrador = new Cifrador(chave);
+        this.kdc = kdc;
 
         sessoes = new HashMap<>();
-        KDC.getInstancia().adicionarChave(nome, chave);
     }
 
     public void enviarMensagem(Usuario destino, String mensagem) {
         Sessao sessao = pegaOuCriaSessao(destino);
 
-        destino.receberMensagem(this, sessao.cifrar(nome+mensagem));
-    }
+        byte[] mensagemCifrada = sessao.cifrar(nome + mensagem);
+        System.out.printf("%s: enviando mensagem cifrada para %s: %s%n", nome, destino.nome, Arrays.toString(mensagemCifrada));
 
-    private Sessao pegaOuCriaSessao(Usuario destino) {
-        if (sessoes.containsKey(destino.nome))
-            return sessoes.get(destino.nome);
-
-        byte[] chaveSessaoCifrada = KDC.getInstancia().iniciarSessao(nome, this.cifrador.cifrar(nome + destino.nome));
-
-        Sessao sessao = new Sessao(removeNomeConcatenadoDoConteudo(cifrador.decifrar(chaveSessaoCifrada)));
-
-        sessoes.put(destino.nome, sessao);
-
-        return sessao;
-    }
-
-    private String removeNomeConcatenadoDoConteudo(String conteudo) {
-        if (!conteudo.substring(0, nome.length()).equals(nome))
-            throw new RuntimeException("erro ao descriptografar");
-        return conteudo.substring(nome.length());
+        destino.receberMensagem(this, mensagemCifrada);
     }
 
     public void receberMensagem(Usuario origem, byte[] mensagemCifrada) {
         if (!sessoes.containsKey(origem.nome)) {
-            byte[] chaveSessaoCifrada = KDC.getInstancia().getSessaoCom(nome, cifrador.cifrar(nome + origem.nome));
+            byte[] chaveSessaoCifrada = kdc.getSessaoCom(nome, cifrador.cifrar(nome + origem.nome));
             String chaveSessaoDecifrada = removeNomeConcatenadoDoConteudo(cifrador.decifrar(chaveSessaoCifrada));
 
             long nonceOriginal = new Random().nextLong();
@@ -62,7 +47,26 @@ public class Usuario {
             sessoes.put(origem.nome, sessao);
         }
 
-        System.out.printf("Mensagem recebida de %s: %s%n", origem.nome, sessoes.get(origem.nome).decifrar(mensagemCifrada).substring(origem.nome.length()));
+        System.out.printf("%s: mensagem recebida de %s: %s%n", nome, origem.nome, sessoes.get(origem.nome).decifrar(mensagemCifrada).substring(origem.nome.length()));
+    }
+
+    private Sessao pegaOuCriaSessao(Usuario destino) {
+        if (sessoes.containsKey(destino.nome))
+            return sessoes.get(destino.nome);
+
+        byte[] chaveSessaoCifrada = kdc.iniciarSessao(nome, this.cifrador.cifrar(nome + destino.nome));
+
+        Sessao sessao = new Sessao(removeNomeConcatenadoDoConteudo(cifrador.decifrar(chaveSessaoCifrada)));
+
+        sessoes.put(destino.nome, sessao);
+
+        return sessao;
+    }
+
+    private String removeNomeConcatenadoDoConteudo(String conteudo) {
+        if (!conteudo.substring(0, nome.length()).equals(nome))
+            throw new RuntimeException("erro ao descriptografar");
+        return conteudo.substring(nome.length());
     }
 
     private long decifrarNonce(Usuario usuario, byte[] nonceCifrado) {

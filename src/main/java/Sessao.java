@@ -2,9 +2,6 @@ import java.time.Duration;
 import java.time.Instant;
 
 public class Sessao {
-    private String chave;
-    private Instant validade;
-    private Cifrador cifrador;
 
     public Sessao(String chave) {
         this.chave = chave;
@@ -31,4 +28,8 @@ public class Sessao {
     public String decifrar(byte[] conteudo) {
         return cifrador.decifrar(conteudo);
     }
+
+    private String chave;
+    private Instant validade;
+    private Cifrador cifrador;
 }

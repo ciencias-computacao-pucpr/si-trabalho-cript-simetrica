@@ -4,7 +4,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 
 public class Cifrador {
-    private final Key chave;
     public Cifrador(String chave) {
         this.chave = new SecretKeySpec(chave.getBytes(StandardCharsets.UTF_8), "AES");
 
@@ -31,6 +30,8 @@ public class Cifrador {
             throw new RuntimeException(e);
         }
     }
+
+    private final Key chave;
 
     private Cipher criarCipher(int mode) {
         try {
