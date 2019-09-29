@@ -3,10 +3,10 @@ import java.time.Instant;
 
 public class Sessao {
 
-    public Sessao(String chave) {
+    public Sessao(String chave, String algoritimo) {
         this.chave = chave;
         this.validade = Instant.now().plus(Duration.ofHours(1));
-        this.cifrador = new Cifrador(chave);
+        this.cifrador = new Cifrador(chave, algoritimo);
     }
 
     public String getChave() {

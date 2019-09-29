@@ -12,7 +12,7 @@ public class Usuario {
 
     public Usuario(KDC kdc, String nome, String chave) {
         this.nome = nome;
-        this.cifrador = new Cifrador(chave);
+        this.cifrador = kdc.criarCifrador(chave);
         this.kdc = kdc;
 
         sessoes = new HashMap<>();
@@ -29,12 +29,12 @@ public class Usuario {
 
     public void receberMensagem(Usuario origem, byte[] mensagemCifrada) {
         if (!sessoes.containsKey(origem.nome)) {
-            byte[] chaveSessaoCifrada = kdc.getSessaoCom(nome, cifrador.cifrar(nome + origem.nome));
+            byte[] chaveSessaoCifrada = kdc.recuperarSessao(nome, cifrador.cifrar(nome + origem.nome));
             String chaveSessaoDecifrada = removeNomeConcatenadoDoConteudo(cifrador.decifrar(chaveSessaoCifrada));
 
             long nonceOriginal = new Random().nextLong();
 
-            Sessao sessao = new Sessao(chaveSessaoDecifrada);
+            Sessao sessao = kdc.criarSessao(chaveSessaoDecifrada);
 
             byte[] nonceCifrado = sessao.cifrar(Long.toString(nonceOriginal));
 
@@ -56,7 +56,7 @@ public class Usuario {
 
         byte[] chaveSessaoCifrada = kdc.iniciarSessao(nome, this.cifrador.cifrar(nome + destino.nome));
 
-        Sessao sessao = new Sessao(removeNomeConcatenadoDoConteudo(cifrador.decifrar(chaveSessaoCifrada)));
+        Sessao sessao = kdc.criarSessao(removeNomeConcatenadoDoConteudo(cifrador.decifrar(chaveSessaoCifrada)));
 
         sessoes.put(destino.nome, sessao);
 

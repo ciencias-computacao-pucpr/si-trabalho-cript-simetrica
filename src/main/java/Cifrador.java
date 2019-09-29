@@ -4,14 +4,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 
 public class Cifrador {
-    public Cifrador(String chave) {
-        this.chave = new SecretKeySpec(chave.getBytes(StandardCharsets.UTF_8), "AES");
 
-    }
-    public Cifrador(Key chave) {
-        this.chave = chave;
-
-    }
+    private String algoritimo;
 
     public byte[] cifrar(String mensagem) {
         try {
@@ -33,9 +27,14 @@ public class Cifrador {
 
     private final Key chave;
 
+    public Cifrador(String chave, String algoritimo) {
+        this.chave = new SecretKeySpec(chave.getBytes(StandardCharsets.UTF_8), algoritimo);
+        this.algoritimo = algoritimo;
+    }
+
     private Cipher criarCipher(int mode) {
         try {
-            Cipher cipher = Cipher.getInstance("AES");
+            Cipher cipher = Cipher.getInstance(algoritimo);
             cipher.init(mode, this.chave);
             return cipher;
         } catch (Exception e) {
