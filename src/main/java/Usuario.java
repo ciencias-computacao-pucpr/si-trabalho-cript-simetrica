@@ -1,9 +1,12 @@
-import java.util.Arrays;
+import java.text.MessageFormat;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.logging.Logger;
 
 public class Usuario {
+    private final Logger LOG = Logger.getLogger(Usuario.class.getName());
 
     private final String nome;
     private Cifrador cifrador;
@@ -22,7 +25,9 @@ public class Usuario {
         Sessao sessao = pegaOuCriaSessao(destino);
 
         byte[] mensagemCifrada = sessao.cifrar(nome + mensagem);
-        System.out.printf("%s: enviando mensagem cifrada para %s: %s%n", nome, destino.nome, Arrays.toString(mensagemCifrada));
+
+        LOG.info(() -> MessageFormat.format("{0}: enviando mensagem cifrada para {1}: {2}", nome, destino.nome, new String(Base64.getEncoder().encode(mensagemCifrada))));
+//        System.out.printf("%s: enviando mensagem cifrada para %s: %s%n", nome, destino.nome, Arrays.toString(mensagemCifrada));
 
         destino.receberMensagem(this, mensagemCifrada);
     }
