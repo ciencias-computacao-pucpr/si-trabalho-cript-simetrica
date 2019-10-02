@@ -5,7 +5,7 @@ import java.util.UUID;
 public class KDC {
 
     private final Map<String, Cifrador> chaves;
-    private String algoritmo;
+    private final String algoritmo;
 
     public KDC(String algoritmo) {
         this.algoritmo = algoritmo;
